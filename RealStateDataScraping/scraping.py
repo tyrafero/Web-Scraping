@@ -13,11 +13,12 @@ with open("houses.csv","w",encoding="utf-8", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["Title", "Location", "Area", "Price", "Seller Validity"])
     for house in houses:
-        property_title= getattr(house.find("h5",class_="title"),"text",None)
-        property_location= getattr(house.find("small",class_=""),"text",None)
-        property_size= getattr(house.find("div",class_="area"),"text",None)
-        property_price= getattr(house.find("span",class_="price"),"text",None)
-        is_seller_valid= getattr(house.find("span",class_="negotiable"),"text",None)
+        property_title= getattr(house.find("h5",class_="title"),"text","None")
+        property_location= getattr(house.find("small",class_=""),"text","None")
+        property_size= getattr(house.find("div",class_="area"),"text","None")
+        property_price= getattr(house.find("span",class_="price"),"text","None")
+        is_seller_valid= getattr(house.find("span",class_="negotiable"),"text","Unverified")
         writer.writerow([property_title,property_location,property_size,property_price,is_seller_valid])
 df = pd.read_csv('houses.csv', encoding="utf-8")
+
 print(df)
