@@ -10,17 +10,17 @@ soup = BeautifulSoup(html_text, "lxml")
 
 offers = soup.find_all("div", class_="col-inner d-flex offer-card")
 
-# with open("offers.csv", "w", newline="") as f:
-#     writer = csv.writer(f)
-#     writer.writerow(["offer_name", "offer_start_date", "offer_end_date", "offer_validity"])
+with open("offers.csv", "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(["offer_name", "offer_start_date", "offer_end_date", "offer_validity"])
 
-#     for offer in offers:
-#         offer_name = offer.find("strong", class_="content-title").text
-#         offer_start_date = offer.find("span", class_="inn").text
-#         offer_end_date = offer.find("span", class_="off").text
-#         offer_validity = offer.find("span", class_="badge badge-expired").text
+    for offer in offers:
+        offer_name = offer.find("strong", class_="content-title").text
+        offer_start_date = offer.find("span", class_="inn").text
+        offer_end_date = offer.find("span", class_="off").text
+        offer_validity = offer.find("span", class_="badge badge-expired").text
 
-#         writer.writerow([offer_name, offer_start_date, offer_end_date, offer_validity])
+        writer.writerow([offer_name, offer_start_date, offer_end_date, offer_validity])
 
 df = pd.read_csv('offers.csv', encoding="latin1")
 name = df["offer_name"].tolist()
