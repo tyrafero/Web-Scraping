@@ -45,6 +45,8 @@ def convert_devanagari_to_number(text):
 
 df['Price'] = df['Price'].apply(convert_devanagari_to_number)
 
+
+df.to_csv("houses.csv", index= False)
 # from geopy.geocoders import Nominatim
 
 # geolocator = Nominatim(user_agent="my-application")
