@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 import pandas as pd
+from geopy.extra.rate_limiter import RateLimiter
+from geopy import Nominatim
 
 
 html_text= requests.get("https://basobaas.com/category/house?category=2&status=Sale").text
@@ -38,20 +40,24 @@ df["Price"] = df["Price"].str.replace(" Onwards", "")
 df["Price"] = df["Price"].str.replace(" Total Price", "")
 df["Price"] = df["Price"].str.replace(",","")
 df.dropna(inplace=True)
+
+df["Location"]= df["Location"].apply(lambda x: x.split(",")[0])
 # Convert Devanagari numerals to regular numbers
 
 def convert_devanagari_to_number(text):
     return unidecode(text)
 
 df['Price'] = df['Price'].apply(convert_devanagari_to_number)
+# remove the three digit numbers
 
 
-df.to_csv("houses.csv", index= False)
-# from geopy.geocoders import Nominatim
 
-# geolocator = Nominatim(user_agent="my-application")
 
-# # define a function to get the latitude and longitude of a location string
+# geolocator = Nominatim(user_agent="http")
+
+# from functools import partial
+# geocode= partial(geolocator.geocode, language="en")
+
 # def get_lat_long(location):
 #     try:
 #         location = geolocator.geocode(location)
@@ -60,5 +66,15 @@ df.to_csv("houses.csv", index= False)
 #         return (None, None)
 
 # # apply the function to a DataFrame column
-# # df['Location'] = df['Location'].map(get_lat_long)
+# df['Location'] = df['Location'].map(get_lat_long)
+
+
+df.to_csv("houses.csv", index= False)
 print(df)
+
+add= df["Location"].to_list()
+cost= df["Price"].to_list()
+
+import plotly.express as px
+fig= px.bar(x=add,y=cost)
+fig.show()
