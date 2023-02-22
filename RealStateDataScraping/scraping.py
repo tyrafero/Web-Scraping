@@ -75,6 +75,9 @@ print(df)
 add= df["Location"].to_list()
 cost= df["Price"].to_list()
 
-import plotly.express as px
-fig= px.bar(x=add,y=cost)
+import plotly.graph_objects as go
+# This dataframe has 244 lines, but 4 distinct values for `day`
+fig = go.Figure(data=[go.Pie(labels=add, values=cost, textinfo='label+value',
+                             insidetextorientation='radial'
+                            )])
 fig.show()
