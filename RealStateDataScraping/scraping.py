@@ -1,13 +1,43 @@
 from bs4 import BeautifulSoup
-import requests
+# import requests
+from selenium import webdriver
 import csv
 import pandas as pd
 from geopy.extra.rate_limiter import RateLimiter
-from geopy import Nominatim
+# from geopy import Nominatim
+from selenium.webdriver.common.by import By
+
+# Set up the Selenium driver
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from bs4 import BeautifulSoup
+import csv
+import time
+
+service = Service('C:/path/to/chromedriver.exe')
+driver = webdriver.Chrome(service=service)
+
+url = "https://basobaas.com/properties/premium-properties/all/house"
+driver.get(url)
+
+# Wait for the page to load
+time.sleep(5)
+
+# Click the "Load More" button
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+# Wait for the element to become visible
+wait = WebDriverWait(driver, 10)
+load_more_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[contains(@class, 'btn btn-primary loading-btn')]")))
+# Wait for the new data to load
 
 
-html_text= requests.get("https://basobaas.com/category/house?category=2&status=Sale").text
-soup= BeautifulSoup(html_text,"lxml")
+# Get the HTML content of the page after all the dynamic content is loaded
+html = driver.page_source
+soup = BeautifulSoup(html, 'html.parser')
+
 
 houses= soup.find_all("div",class_="padding-right-remove col-lg-6 col-md-6 col-xl-3")
 
@@ -26,7 +56,6 @@ from unidecode import unidecode
 
 # Read the CSV file
 df = pd.read_csv('houses.csv', encoding="utf-8")
-
 # Replace "None" string with empty string
 df.replace("None","")
 
@@ -39,9 +68,19 @@ df["Price"] = df["Price"].str.replace("NPR.", "")
 df["Price"] = df["Price"].str.replace(" Onwards", "")
 df["Price"] = df["Price"].str.replace(" Total Price", "")
 df["Price"] = df["Price"].str.replace(",","")
+df["Price"] = df["Price"].str.replace("onwards","")
+df["Price"] = df["Price"].str.replace("Starting From","")
+# Drop rows where the "Title" column contains the word "Office"
+df = df.loc[~df['Title'].astype(str).str.contains('Office')]
+
+# Drop rows where the "Title" column contains the word "Rent"
+df = df.loc[~df['Title'].astype(str).str.contains('Rent')]
+
+df = df.loc[~df['Title'].astype(str).str.contains('Apartment')]
+
+
 df.dropna(inplace=True)
 
-df["Location"]= df["Location"].apply(lambda x: x.split(",")[0])
 # Convert Devanagari numerals to regular numbers
 
 def convert_devanagari_to_number(text):
@@ -76,8 +115,28 @@ add= df["Location"].to_list()
 cost= df["Price"].to_list()
 
 import plotly.graph_objects as go
-# This dataframe has 244 lines, but 4 distinct values for `day`
-fig = go.Figure(data=[go.Pie(labels=add, values=cost, textinfo='label+value',
-                             insidetextorientation='radial'
-                            )])
+
+# Convert cost to a list of integers
+cost_int = [int(c.replace(",", "")) for c in cost]
+
+# Create the figure with the updated y-axis range
+fig = go.Figure(data=[go.Bar(x=add, y=cost_int)])
+
+# Customize the layout
+fig.update_layout(
+    title="Cost of houses in different locations",
+    xaxis_title="Location",
+    yaxis_title="Cost",
+    font=dict(size=12),
+    margin=dict(l=50, r=50, b=50, t=80, pad=4),
+    plot_bgcolor="white",
+)
+
+# Customize the traces
+fig.update_traces(
+    marker_color="steelblue",
+    textposition="outside",
+    texttemplate="%{y:,.0f}",
+    hovertemplate="Location: %{x}<br>Cost: %{y:,.0f}",
+)
 fig.show()
