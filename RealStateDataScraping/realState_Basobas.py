@@ -1,24 +1,22 @@
 from bs4 import BeautifulSoup
-# import requests
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
 import csv
 import pandas as pd
-from geopy.extra.rate_limiter import RateLimiter
-# from geopy import Nominatim
-from selenium.webdriver.common.by import By
+from unidecode import unidecode
+import plotly.graph_objects as go
+# from geopy.extra.rate_limiter import RateLimiter
+
 
 # Set up the Selenium driver
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from bs4 import BeautifulSoup
-import csv
-import time
-
 service = Service('C:/path/to/chromedriver.exe')
 driver = webdriver.Chrome(service=service)
 
 url = "https://basobaas.com/properties/premium-properties/all/house"
 driver.get(url)
+
 
 # Wait for the page to load
 time.sleep(5)
@@ -41,7 +39,9 @@ soup = BeautifulSoup(html, 'html.parser')
 
 houses= soup.find_all("div",class_="padding-right-remove col-lg-6 col-md-6 col-xl-3")
 
-with open("houses.csv","w",encoding="utf-8", newline="") as f:
+file= "D:\OneDrive\Desktop\Projects\Web Scrapping\RealStateDataScraping\csvFiles\houses.csv"
+
+with open(file,"w",encoding="utf-8", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["Title", "Location", "Area", "Price", "Seller Validity"])
     for house in houses:
@@ -52,10 +52,12 @@ with open("houses.csv","w",encoding="utf-8", newline="") as f:
         is_seller_valid= getattr(house.find("span",class_="negotiable"),"text","Unverified")
         writer.writerow([property_title,property_location,property_size,property_price,is_seller_valid])
 
-from unidecode import unidecode
+
+
+
 
 # Read the CSV file
-df = pd.read_csv('houses.csv', encoding="utf-8")
+df = pd.read_csv(file, encoding="utf-8")
 # Replace "None" string with empty string
 df.replace("None","")
 
@@ -106,15 +108,13 @@ df['Price'] = df['Price'].apply(convert_devanagari_to_number)
 
 # # apply the function to a DataFrame column
 # df['Location'] = df['Location'].map(get_lat_long)
-
-
-df.to_csv("houses.csv", index= False)
+df.to_csv(file, index= False)
 print(df)
 
 add= df["Location"].to_list()
 cost= df["Price"].to_list()
 
-import plotly.graph_objects as go
+
 
 # Convert cost to a list of integers
 cost_int = [int(c.replace(",", "")) for c in cost]
